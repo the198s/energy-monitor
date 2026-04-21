@@ -102,7 +102,7 @@ function DealCard({ deal, rank, currentTotal }) {
   const diff = (deal.estimatedAnnual??0) - currentTotal;
   const confColor = deal.confidence==="HIGH"?"#16a34a":deal.confidence==="MEDIUM"?"#b45309":"#6b7280";
   return (
-    <div style={{ background:"#fff", border:`1.5px solid ${beats?"#86efac":beatsEon?"#bfdbfe":"#e5e7eb"}`, borderRadius:14, overflow:"hidden", boxShadow:beats?"0 4px 24px rgba(22,163,74,0.08)":"0 1px 4px rgba(0,0,0,0.04)", marginBottom:10 }}>
+    <div className="deal-card" style={{ background:"#fff", border:`1.5px solid ${beats?"#86efac":beatsEon?"#bfdbfe":"#e5e7eb"}`, borderRadius:14, overflow:"hidden", boxShadow:beats?"0 4px 24px rgba(22,163,74,0.08)":"0 1px 4px rgba(0,0,0,0.04)", marginBottom:10 }}>
       {beats && <div style={{ background:"linear-gradient(90deg,#16a34a,#22c55e)", padding:"5px 16px", fontSize:10, color:"#fff", fontWeight:700, letterSpacing:"0.1em" }}>✓ BEATS YOUR CURRENT DEAL</div>}
       <div style={{ padding:"16px 18px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -125,8 +125,11 @@ function DealCard({ deal, rank, currentTotal }) {
             </div>
           </div>
         </div>
-        <button onClick={()=>setOpen(v=>!v)} style={{ background:"none", border:"none", padding:0, fontSize:11, color:"#2563eb", cursor:"pointer", fontFamily:"inherit", marginTop:10 }}>
-          {open?"▲ Hide rates":"▼ Show rates"}
+        <button onClick={()=>setOpen(v=>!v)} style={{ background:"none", border:"none", padding:"6px 0 0", fontSize:11, fontWeight:600, color:"#2563eb", cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transition:"transform 0.2s", transform:open?"rotate(180deg)":"rotate(0deg)", flexShrink:0 }}>
+            <path d="M2 4.5l4 3 4-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {open ? "Hide rates" : "Show rates"}
         </button>
         {open && (
           <div style={{ marginTop:12, display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
@@ -239,7 +242,7 @@ export default function Home() {
   );
 
   const Label = ({children}) => (
-    <div style={{ fontSize:10, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:700, marginBottom:14 }}>{children}</div>
+    <div style={{ fontSize:10, color:"#6b7280", textTransform:"uppercase", letterSpacing:"0.12em", fontWeight:700, marginBottom:14 }}>{children}</div>
   );
 
   const EditBtn = ({onClick}) => (
@@ -254,34 +257,30 @@ export default function Home() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:"#f8fafc", fontFamily:"'DM Mono','Fira Code',monospace" }}>
-      <style>{`
-        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        .fadeup{animation:fadeUp 0.4s ease forwards}
-        input[type=range]{-webkit-appearance:none;appearance:none}
-        input:focus,select:focus{outline:2px solid #2563eb;outline-offset:1px;border-radius:6px}
-        input[type=range]:focus{outline:none}
-      `}</style>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#eef2ff 0%,#f8fafc 28%)", fontFamily:"'DM Sans',sans-serif" }}>
 
       {/* Nav */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10, boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+      <div style={{ background:"rgba(255,255,255,0.85)", backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)", borderBottom:"1px solid #e5e7eb", padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10, boxShadow:"0 1px 8px rgba(0,0,0,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#2563eb,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>⚡</div>
-          <span style={{ fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:15 }}>Energy Monitor</span>
+          <div style={{ width:30, height:30, borderRadius:9, background:"linear-gradient(135deg,#2563eb,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, boxShadow:"0 2px 8px rgba(37,99,235,0.3)" }}>⚡</div>
+          <span style={{ fontWeight:700, fontSize:15, letterSpacing:"-0.01em" }}>Energy Monitor</span>
         </div>
-        {lastRun && <span style={{ fontSize:11, color:"#9ca3af" }}>Last run {lastRun.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>}
+        {lastRun && <span style={{ fontSize:11, color:"#9ca3af" }}>Last checked {lastRun.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>}
       </div>
 
       <div style={{ maxWidth:680, margin:"0 auto", padding:"28px 18px 60px" }}>
 
         {/* Hero */}
         <div style={{ marginBottom:28 }}>
-          <h1 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:28, fontWeight:800, lineHeight:1.2, marginBottom:8 }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:99, padding:"4px 12px", marginBottom:14 }}>
+            <span style={{ width:6, height:6, borderRadius:"50%", background:"#2563eb", display:"inline-block", flexShrink:0 }}/>
+            <span style={{ fontSize:11, fontWeight:600, color:"#1d4ed8", letterSpacing:"0.01em" }}>UK energy market · live search</span>
+          </div>
+          <h1 style={{ fontSize:28, fontWeight:800, lineHeight:1.2, marginBottom:8 }}>
             Find a better<br />
             <span style={{ background:"linear-gradient(135deg,#2563eb,#7c3aed)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>energy deal</span>
           </h1>
-          <p style={{ fontSize:12, color:"#6b7280", lineHeight:1.7 }}>Searches MSE, Uswitch and supplier sites · Calculates costs against your exact usage</p>
+          <p style={{ fontSize:13, color:"#6b7280", lineHeight:1.7 }}>Searches MSE, Uswitch and supplier sites · Calculates costs against your exact usage</p>
         </div>
 
         {/* ── Usage ── */}
@@ -508,7 +507,7 @@ export default function Home() {
             </div>
 
             <div style={{ display:"flex", gap:2, marginBottom:16, background:"#f1f5f9", borderRadius:10, padding:3 }}>
-              {[{key:"deals",label:`Deals (${result.deals?.length??0})`},{key:"market",label:"Market"},{key:"raw",label:"Raw"}].map(({key,label})=>(
+              {[{key:"deals",label:`Deals (${result.deals?.length??0})`},{key:"market",label:"Market overview"}].map(({key,label})=>(
                 <button key={key} onClick={()=>setActiveTab(key)} style={{ flex:1, padding:"7px 10px", background:activeTab===key?"#fff":"transparent", border:"none", borderRadius:7, color:activeTab===key?"#111827":"#6b7280", fontSize:12, fontWeight:activeTab===key?700:400, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", boxShadow:activeTab===key?"0 1px 4px rgba(0,0,0,0.08)":"none", transition:"all 0.15s" }}>
                   {label}
                 </button>
@@ -525,16 +524,11 @@ export default function Home() {
                 {result.marketContext ?? "No market context available."}
               </div>
             )}
-            {activeTab==="raw" && (
-              <pre style={{ background:"#f8fafc", border:"1px solid #e5e7eb", borderRadius:12, padding:16, fontSize:10, color:"#6b7280", whiteSpace:"pre-wrap", overflow:"auto", maxHeight:400, fontFamily:"'DM Mono',monospace" }}>
-                {JSON.stringify(result, null, 2)}
-              </pre>
-            )}
           </div>
         )}
 
-        <div style={{ marginTop:36, fontSize:10, color:"#d1d5db", lineHeight:1.8, textAlign:"center" }}>
-          Results based on publicly available data · Always verify with a personalised postcode quote before switching<br/>Next Ofgem announcement: ~23 May 2026
+        <div style={{ marginTop:40, paddingTop:24, borderTop:"1px solid #e5e7eb", fontSize:11, color:"#9ca3af", lineHeight:1.8, textAlign:"center" }}>
+          Results are based on publicly available data. Always verify with a personalised quote before switching.
         </div>
       </div>
     </div>
