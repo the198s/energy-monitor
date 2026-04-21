@@ -73,7 +73,7 @@ Reply ONLY with this JSON, no markdown:
       let stepIdx   = 0;
       let finalText = "";
 
-      for (let turn = 0; turn < 3; turn++) {
+      for (let turn = 0; turn < 5; turn++) {
         if (stepIdx < STEP_LABELS.length && turn > 0) {
           await send({ type: "step", ...STEP_LABELS[stepIdx++] });
           await new Promise(r => setTimeout(r, 400));
@@ -81,7 +81,7 @@ Reply ONLY with this JSON, no markdown:
 
         const response = await client.messages.create({
           model:      "claude-haiku-4-5-20251001",
-          max_tokens: 800,
+          max_tokens: 2000,
           tools:      [{ type: "web_search_20250305", name: "web_search" }],
           system:     SYSTEM_PROMPT,
           messages,
