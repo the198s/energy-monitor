@@ -2,11 +2,12 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export async function POST(request) {
   // Read dynamic usage + tariff sent from the frontend
-  let usage, tariff;
+  let usage, tariff, dealType;
   try {
     const body = await request.json();
-    usage  = body.usage;
-    tariff = body.tariff;
+    usage    = body.usage;
+    tariff   = body.tariff;
+    dealType = body.dealType ?? "fixed";
   } catch {
     return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400 });
   }
@@ -24,11 +25,19 @@ export async function POST(request) {
   const now  = new Date();
   const year = now.getFullYear();
 
+  const DEAL_TYPE_LABELS = { fixed: "fixed-rate", variable: "variable/tracker", both: "fixed and variable" };
+  const dealLabel = DEAL_TYPE_LABELS[dealType] ?? "fixed-rate";
+  const searchQuery = dealType === "variable"
+    ? `best variable tracker energy deals UK ${year}`
+    : dealType === "both"
+      ? `best fixed and variable energy deals UK ${year}`
+      : `best fixed-rate energy deals UK ${year}`;
+
   const SYSTEM_PROMPT = `UK energy deal finder. Usage: ${elecKwh} kWh elec, ${gasKwh} kWh gas. Current annual cost: £${currentAnnual}.
 
 Cost formula: ((elecKwh×elecUnit)+(365×elecSC)+(gasKwh×gasUnit)+(365×gasSC))/100, rounded to nearest £.
 
-Do 2 searches: best fixed energy deals UK ${year}, and Ofgem price cap ${year} prediction.
+Return ONLY ${dealLabel} tariffs. Do 2 searches: "${searchQuery}", and "Ofgem price cap ${year} prediction".
 
 Reply ONLY with this JSON, no markdown:
 {"searchedAt":"${now.toISOString()}","summary":"1 sentence","recommendation":"SWITCH_NOW|STAY_PUT|MONITOR_CLOSELY","recommendationReason":"1 sentence","ofgemAlert":"string or null","marketContext":"1 sentence","deals":[{"supplier":"","tariffName":"","term":"","elecUnit":0,"elecSC":0,"gasUnit":0,"gasSC":0,"exitFee":0,"estimatedAnnual":0,"beatsBestFound":false,"beatsEon":false,"confidence":"HIGH|MEDIUM|LOW","notes":"","source":""}]}`;
@@ -58,7 +67,7 @@ Reply ONLY with this JSON, no markdown:
       const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
       let messages = [{
         role: "user",
-        content: `Today is ${today}. Search for the best UK fixed energy deals. My current annual cost is £${currentAnnual} (${elecKwh.toLocaleString()} kWh electricity, ${gasKwh.toLocaleString()} kWh gas). Find deals cheaper than this. Return ONLY the JSON specified — no other text.`,
+        content: `Today is ${today}. Search for the best UK ${dealLabel} energy deals. My current annual cost is £${currentAnnual} (${elecKwh.toLocaleString()} kWh electricity, ${gasKwh.toLocaleString()} kWh gas). Return ONLY ${dealLabel} tariffs. Return ONLY the JSON specified — no other text.`,
       }];
 
       let stepIdx   = 0;

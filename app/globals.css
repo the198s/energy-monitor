@@ -2,7 +2,7 @@
 
 body {
   background: #f8fafc;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   color: #111827;
   -webkit-font-smoothing: antialiased;
 }
@@ -26,6 +26,11 @@ body {
 button { transition: opacity 0.15s ease, transform 0.1s ease; }
 button:hover { opacity: 0.88; }
 button:active { transform: scale(0.98); }
+button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
 
 input[type=range] { -webkit-appearance: none; appearance: none; }
 input:focus, select:focus { outline: 2px solid #2563eb; outline-offset: 1px; border-radius: 6px; }
