@@ -75,6 +75,7 @@ Reply ONLY with this JSON, no markdown:
       let stepIdx   = 0;
       let finalText = "";
 
+      // Phase 1: agentic search loop (tools enabled, up to 5 turns)
       for (let turn = 0; turn < 5; turn++) {
         if (stepIdx < STEP_LABELS.length && turn > 0) {
           await send({ type: "step", ...STEP_LABELS[stepIdx++] });
@@ -83,7 +84,7 @@ Reply ONLY with this JSON, no markdown:
 
         const response = await client.messages.create({
           model:      "claude-haiku-4-5-20251001",
-          max_tokens: 2000,
+          max_tokens: 4000,
           tools:      [{ type: "web_search_20250305", name: "web_search" }],
           system:     SYSTEM_PROMPT,
           messages,
@@ -110,7 +111,26 @@ Reply ONLY with this JSON, no markdown:
         ];
       }
 
-      // Flush remaining steps
+      // Phase 2: if the loop ended without producing JSON, force a dedicated
+      // generation turn with no tools so the model can't search again.
+      // messages always ends with a user message after the loop, so we bridge
+      // with a short assistant message before the final user prompt.
+      if (!finalText.match(/\{[\s\S]*\}/)) {
+        const fallbackResponse = await client.messages.create({
+          model:      "claude-haiku-4-5-20251001",
+          max_tokens: 4000,
+          system:     SYSTEM_PROMPT,
+          messages: [
+            ...messages,
+            { role: "assistant", content: [{ type: "text", text: "I have completed my research." }] },
+            { role: "user",      content: "Now output ONLY the JSON object specified. No other text." },
+          ],
+        });
+        const fbBlocks = fallbackResponse.content.filter(b => b.type === "text");
+        if (fbBlocks.length) finalText = fbBlocks.map(b => b.text).join("\n");
+      }
+
+      // Flush remaining step indicators
       while (stepIdx < STEP_LABELS.length) {
         await send({ type: "step", ...STEP_LABELS[stepIdx++] });
         await new Promise(r => setTimeout(r, 200));
