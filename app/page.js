@@ -529,6 +529,7 @@ export default function Home() {
 
         <div style={{ marginTop:40, paddingTop:24, borderTop:"1px solid #e5e7eb", fontSize:11, color:"#9ca3af", lineHeight:1.8, textAlign:"center" }}>
           Results are based on publicly available data. Always verify with a personalised quote before switching.
+          <div style={{ marginTop:8, fontSize:10, color:"#d1d5db" }}>v{process.env.NEXT_PUBLIC_APP_VERSION}</div>
         </div>
       </div>
     </div>

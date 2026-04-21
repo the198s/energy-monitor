@@ -1,3 +1,6 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
-module.exports = nextConfig
+const { version } = require("./package.json");
+const nextConfig = {
+  env: { NEXT_PUBLIC_APP_VERSION: version },
+};
+module.exports = nextConfig;
