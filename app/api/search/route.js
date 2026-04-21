@@ -39,6 +39,8 @@ Cost formula: ((elecKwh×elecUnit)+(365×elecSC)+(gasKwh×gasUnit)+(365×gasSC))
 
 Return ONLY ${dealLabel} tariffs. Do 2 searches: "${searchQuery}", and "Ofgem price cap ${year} prediction".
 
+CRITICAL: Always return up to 10 deals ordered cheapest first. Include ALL deals found regardless of whether they beat £${currentAnnual} — do NOT filter by competitiveness. If exact unit rates are unavailable, provide your best estimates based on market data and set confidence to LOW. Always populate estimatedAnnual.
+
 Reply ONLY with this JSON, no markdown:
 {"searchedAt":"${now.toISOString()}","summary":"1 sentence","recommendation":"SWITCH_NOW|STAY_PUT|MONITOR_CLOSELY","recommendationReason":"1 sentence","ofgemAlert":"string or null","marketContext":"1 sentence","deals":[{"supplier":"","tariffName":"","term":"","elecUnit":0,"elecSC":0,"gasUnit":0,"gasSC":0,"exitFee":0,"estimatedAnnual":0,"beatsBestFound":false,"beatsEon":false,"confidence":"HIGH|MEDIUM|LOW","notes":"","source":""}]}`;
 

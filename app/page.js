@@ -125,8 +125,8 @@ function DealCard({ deal, rank, currentTotal }) {
           <div style={{ textAlign:"right", marginLeft:12 }}>
             <div style={{ fontSize:28, fontWeight:800, color:beats?"#16a34a":"#111827", lineHeight:1 }}>£{deal.estimatedAnnual?.toLocaleString()}</div>
             <div style={{ fontSize:12, color:"#6b7280", marginTop:2 }}>per year</div>
-            <div style={{ fontSize:13, fontWeight:700, marginTop:4, color:diff<=0?"#16a34a":"#dc2626" }}>
-              {diff<=0?`£${Math.abs(diff)} cheaper`:`£${diff} more expensive`}
+            <div style={{ display:"inline-block", marginTop:6, padding:"3px 8px", borderRadius:99, fontSize:12, fontWeight:700, background:diff<=0?"#f0fdf4":"#fef2f2", color:diff<=0?"#15803d":"#dc2626", border:`1px solid ${diff<=0?"#bbf7d0":"#fecaca"}` }}>
+              {diff<=0?`▼ £${Math.abs(diff)} cheaper`:`▲ £${Math.abs(diff)} more expensive`}
             </div>
           </div>
         </div>
@@ -534,7 +534,7 @@ export default function Home() {
             {activeTab==="deals" && (
               result.deals?.length>0
                 ? result.deals.map((d,i)=><DealCard key={i} deal={d} rank={i+1} currentTotal={cost.total}/>)
-                : <div style={{textAlign:"center",padding:32,color:"#6b7280",fontSize:14}}>No deals with full rate details found. Try searching again.</div>
+                : <div style={{textAlign:"center",padding:32,color:"#6b7280",fontSize:14}}>No deals found — the market may have limited availability right now. Try searching again.</div>
             )}
             {activeTab==="market" && (
               <div style={{ background:"#fff", border:"1px solid #e5e7eb", borderRadius:12, padding:"16px 18px", fontSize:14, color:"#374151", lineHeight:1.8, boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
