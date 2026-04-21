@@ -21,66 +21,17 @@ export async function POST(request) {
     (365   * (tariff?.gasSC   ?? 31.31)) / 100
   );
 
-  const now = new Date();
-  const monthYear = now.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  const year      = now.getFullYear();
+  const now  = new Date();
+  const year = now.getFullYear();
 
-  const SYSTEM_PROMPT = `You are a UK energy market monitoring agent. Search for the latest fixed energy deals and report clearly.
+  const SYSTEM_PROMPT = `UK energy deal finder. Usage: ${elecKwh} kWh elec, ${gasKwh} kWh gas. Current annual cost: £${currentAnnual}.
 
-User energy profile:
-- Electricity: ${elecKwh.toLocaleString()} kWh/year
-- Gas: ${gasKwh.toLocaleString()} kWh/year (HIGH — key cost driver)
-- Current supplier: ${tariff?.supplier ?? "Unknown"}
-- Current tariff: ${tariff?.tariffName ?? "Unknown"}
-- Current deal ends: ${tariff?.endDate ?? "Unknown"}
-- Current exit fee: £${tariff?.exitFee ?? 0}
-- Current rates: Elec ${tariff?.elecUnit ?? 19.48}p/kWh + ${tariff?.elecSC ?? 51.77}p/day SC | Gas ${tariff?.gasUnit ?? 5.48}p/kWh + ${tariff?.gasSC ?? 31.31}p/day SC
-- Estimated current annual cost: £${currentAnnual}
+Cost formula: ((elecKwh×elecUnit)+(365×elecSC)+(gasKwh×gasUnit)+(365×gasSC))/100, rounded to nearest £.
 
-Annual cost formula (use this to calculate for every deal):
-- Electricity: (${elecKwh} × elecUnit / 100) + (365 × elecSC / 100)
-- Gas: (${gasKwh} × gasUnit / 100) + (365 × gasSC / 100)
-- Total = Electricity + Gas (round to nearest £)
+Do 2 searches: best fixed energy deals UK ${year}, and Ofgem price cap ${year} prediction.
 
-A deal "beatsBestFound" if its total annual cost is less than £${currentAnnual} (the current deal cost).
-A deal "beatsEon" if its total annual cost is less than £${currentAnnual + 40} (slightly above current).
-
-Search strategy — do ALL of these:
-1. "best fixed energy deals UK ${monthYear} unit rates"
-2. "cheapest fixed energy tariff UK ${year} gas electricity p/kWh"
-3. "MSE cheap energy club top fixes ${year}"
-4. "Uswitch best fixed energy deal ${year}"
-5. "Ofgem price cap July ${year} prediction announcement"
-
-For each deal found, extract unit rates and standing charges, calculate annual cost, and compare to current.
-
-Respond ONLY with valid JSON — no other text, no markdown fences:
-{
-  "searchedAt": "${now.toISOString()}",
-  "summary": "2 sentence market summary",
-  "recommendation": "SWITCH_NOW or STAY_PUT or MONITOR_CLOSELY",
-  "recommendationReason": "2 sentence explanation referencing the user's current deal cost of £${currentAnnual}",
-  "ofgemAlert": "Ofgem news string or null",
-  "marketContext": "2-3 sentences on wholesale conditions and direction",
-  "deals": [
-    {
-      "supplier": "name",
-      "tariffName": "name",
-      "term": "12 months",
-      "elecUnit": 19.44,
-      "elecSC": 59.72,
-      "gasUnit": 6.15,
-      "gasSC": 29.11,
-      "exitFee": 150,
-      "estimatedAnnual": 1649,
-      "beatsBestFound": false,
-      "beatsEon": false,
-      "confidence": "HIGH or MEDIUM or LOW",
-      "notes": "any caveats or regional notes",
-      "source": "where found e.g. MSE Cheap Energy Club"
-    }
-  ]
-}`;
+Reply ONLY with this JSON, no markdown:
+{"searchedAt":"${now.toISOString()}","summary":"1 sentence","recommendation":"SWITCH_NOW|STAY_PUT|MONITOR_CLOSELY","recommendationReason":"1 sentence","ofgemAlert":"string or null","marketContext":"1 sentence","deals":[{"supplier":"","tariffName":"","term":"","elecUnit":0,"elecSC":0,"gasUnit":0,"gasSC":0,"exitFee":0,"estimatedAnnual":0,"beatsBestFound":false,"beatsEon":false,"confidence":"HIGH|MEDIUM|LOW","notes":"","source":""}]}`;
 
   const client  = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const encoder = new TextEncoder();
@@ -113,15 +64,15 @@ Respond ONLY with valid JSON — no other text, no markdown fences:
       let stepIdx   = 0;
       let finalText = "";
 
-      for (let turn = 0; turn < 10; turn++) {
+      for (let turn = 0; turn < 3; turn++) {
         if (stepIdx < STEP_LABELS.length && turn > 0) {
           await send({ type: "step", ...STEP_LABELS[stepIdx++] });
           await new Promise(r => setTimeout(r, 400));
         }
 
         const response = await client.messages.create({
-          model:      "claude-sonnet-4-20250514",
-          max_tokens: 4000,
+          model:      "claude-haiku-4-5-20251001",
+          max_tokens: 800,
           tools:      [{ type: "web_search_20250305", name: "web_search" }],
           system:     SYSTEM_PROMPT,
           messages,
@@ -161,6 +112,13 @@ Respond ONLY with valid JSON — no other text, no markdown fences:
 
         const parsed = JSON.parse(jsonMatch[0]);
 
+        const stripCites = (v) =>
+          typeof v === "string" ? v.replace(/<cite[^>]*>|<\/cite>/g, "").replace(/\s{2,}/g, " ").trim() : v;
+
+        for (const key of ["summary", "recommendationReason", "ofgemAlert", "marketContext"]) {
+          if (parsed[key]) parsed[key] = stripCites(parsed[key]);
+        }
+
         const deals = (parsed.deals ?? [])
           .map(d => {
             const annual = d.elecUnit > 0
@@ -171,6 +129,7 @@ Respond ONLY with valid JSON — no other text, no markdown fences:
               : (d.estimatedAnnual ?? 9999);
             return {
               ...d,
+              notes:          stripCites(d.notes),
               estimatedAnnual: annual,
               beatsBestFound:  annual < currentAnnual,
               beatsEon:        annual < currentAnnual + 40,
