@@ -1,0 +1,16 @@
+{
+  "name": "energy-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "next": "^14.2.35",
+    "react": "^18",
+    "react-dom": "^18"
+  }
+}
